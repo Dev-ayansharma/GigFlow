@@ -113,4 +113,4 @@ Project Links:
 
 Frontend: https://github.com/Dev-ayansharma/GigFlow
 Backend: https://github.com/Dev-ayansharma/gigflowback
-Live Demo: https://gigflow.vercel.app
+Live Demo: (https://gigflow-bay.vercel.app/)
