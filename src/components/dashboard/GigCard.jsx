@@ -2,10 +2,22 @@
 
 import { DollarSign} from "lucide-react";
 import { useAuth } from "../../context/useAuth";
+import { api } from "../../services/api";
+import toast from "react-hot-toast";
 
 const GigCard = ({ gig, onBidClick, onViewBids }) => {
   const { user } = useAuth();
   const isOwner = user?._id === gig.ownerid;
+
+  const handledelete = async() =>{
+    const res = await api.gigdelete(gig._id)
+    if(res.success){
+    toast.success(res.message)
+  }else{
+    toast.error(res.message || "not deleted yet")}
+  }
+
+
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
@@ -55,12 +67,20 @@ const GigCard = ({ gig, onBidClick, onViewBids }) => {
         {/* ACTION */}
         {gig.status === "open" &&
           (isOwner ? (
-            <button
+          <>  <button
               onClick={() => onViewBids(gig._id)}
               className="px-4 py-2 text-sm font-medium bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition"
             >
               View Bids
             </button>
+
+                        <button
+              onClick={handledelete}
+              className="px-4 py-2 text-sm font-medium bg-red-900 text-white rounded-lg hover:bg-red-800 transition"
+            >
+              Delete Bids
+            </button> </>
+
           ) : (
             <button
               onClick={() => onBidClick(gig)}

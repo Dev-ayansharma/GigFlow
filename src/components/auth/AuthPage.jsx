@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useAuth } from "../../context/useAuth";
 import { Mail, Lock, User } from "lucide-react";
 import toast from "react-hot-toast";
-const AuthPage = () => {
+const AuthPage = ({ onGetStarted }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     name: "",
@@ -157,6 +157,13 @@ const AuthPage = () => {
             className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition shadow-md"
           >
             {isLogin ? "Login" : "Create Account"}
+          </button>
+
+             <button
+            onClick={onGetStarted}
+            className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition shadow-md"
+          >
+            Go back
           </button>
         </div>
 

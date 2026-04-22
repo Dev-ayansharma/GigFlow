@@ -2,12 +2,14 @@ import { useState, useEffect } from "react";
 import { AuthProvider } from "./context/AuthProvider";
 import { useAuth } from "./context/useAuth";
 import AuthPage from "./components/auth/AuthPage";
+import HomePage from "./components/Home";
 import Dashboard from "./components/dashboard/Dashboard";
 import NotificationToast from "./components/NotificationToast";
 import socketService from "./services/socket";
 import ClientDashboard from "./components/dashboard/ClientDashboard";
 const AppContent = () => {
   const { user, loading } = useAuth();
+    const [showAuth, setShowAuth] = useState(false);
   const [notification, setNotification] = useState(null);
 
   useEffect(() => {
@@ -38,11 +40,15 @@ const AppContent = () => {
 
   return (
     <>
-     {user ? (
-  user.role === "client" ? <ClientDashboard /> : <Dashboard />
-) : (
-  <AuthPage />
-)}
+      {user ? (
+        user.role === "owner" ?
+        (<Dashboard />) : (<ClientDashboard/>)
+      ) : showAuth ? (
+        <AuthPage onGetStarted={() => setShowAuth(false)} />
+      ) : (
+        <HomePage onGetStarted={() => setShowAuth(true)} />
+      )}
+
       {notification && (
         <NotificationToast
           notification={notification}

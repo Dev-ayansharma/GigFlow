@@ -90,4 +90,18 @@ export const api = {
 
     return data;
   },
+
+  gigdelete:async(gigId)=>{
+      const res = await fetch(`${API_BASE}/gigs/${gigId}`,{
+        method:"DELETE",
+        credentials:"include"
+      })
+         const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to delete gig");
+    }
+
+    return data;
+  }
 };

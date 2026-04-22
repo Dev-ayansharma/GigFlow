@@ -21,7 +21,7 @@ const Dashboard = () => {
     setLoading(true);
     try {
       const res = await api.fetchGigs(query);
-      console.log(res)
+    
       setGigs(res?.data.gigs ?? []);
     } catch (err) {
       console.error(err);
