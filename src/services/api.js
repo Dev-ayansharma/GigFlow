@@ -1,5 +1,5 @@
 const API_BASE =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:9000/app";
 
 export const api = {
   login: async (email, password) => {
@@ -13,12 +13,13 @@ export const api = {
     return res.json();
   },
 
-  register: async (name, email, password) => {
+  register: async (name, email, password, role) => {
+    console.log("role",role)
     const res = await fetch(`${API_BASE}/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
-      body: JSON.stringify({ name, email, password }),
+      body: JSON.stringify({ name, email, password, role }),
     });
     return res.json();
   },
@@ -41,9 +42,9 @@ export const api = {
   fetchGigs: async (searchQuery = "") => {
     const res = await fetch(`${API_BASE}/gigs/allgigs?title=${searchQuery}`, {
       credentials: "include",
-    });
-
+    });  
     return res.json();
+    
   },
 
   createGig: async (gigData) => {

@@ -1,12 +1,14 @@
-import { useState, useEffect } from "react";
-import { Clock, CheckCircle, XCircle } from "lucide-react";
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+import { Clock, CheckCircle, XCircle, X } from "lucide-react";
 import { api } from "../../services/api";
-import { useCallback } from "react";
 
 const BidsModal = ({ gigId, onClose, onHireSuccess }) => {
   const [bids, setBids] = useState([]);
   const [loading, setLoading] = useState(true);
   const [hiringBidId, setHiringBidId] = useState(null);
+
   const fetchBids = useCallback(async (gigId) => {
     setLoading(true);
     try {
@@ -24,123 +26,160 @@ const BidsModal = ({ gigId, onClose, onHireSuccess }) => {
   }, [gigId, fetchBids]);
 
   const handleHire = async (bidId) => {
-    const confirmHire = window.confirm(
-      "Are you sure you want to hire this freelancer? This action cannot be undone.",
-    );
-
-    if (!confirmHire) return;
-
-    setHiringBidId(bidId); // Show loading state on specific bid
+    setHiringBidId(bidId);
 
     try {
-      const response = await api.hireBid(bidId);
+      const res = await api.hireBid(bidId);
 
-      if (response.success) {
-        // Show success message
-        alert(
-          response.freelancerNotified
-            ? "✅ Freelancer hired successfully! They have been notified in real-time."
-            : "✅ Freelancer hired successfully! They will be notified when they come online.",
-        );
-
-        // Call success callback to refresh gigs
+      if (res.success) {
         onHireSuccess();
         onClose();
-      } else {
-        alert(
-          "❌ Failed to hire freelancer: " +
-            (response.message || "Unknown error"),
-        );
       }
-    } catch (error) {
-      console.error("Error hiring:", error);
-      alert(
-        "❌ An error occurred while hiring the freelancer. Please try again.",
-      );
+    } catch (err) {
+      console.error(err);
     } finally {
       setHiringBidId(null);
     }
   };
-  const getStatusIcon = (status) => {
+
+  const getStatus = (status) => {
     switch (status) {
       case "hired":
-        return <CheckCircle className="w-5 h-5 text-green-500" />;
+        return {
+          icon: <CheckCircle className="w-4 h-4 text-green-500" />,
+          label: "Hired",
+          color: "text-green-600 bg-green-50",
+        };
       case "rejected":
-        return <XCircle className="w-5 h-5 text-red-500" />;
+        return {
+          icon: <XCircle className="w-4 h-4 text-red-500" />,
+          label: "Rejected",
+          color: "text-red-600 bg-red-50",
+        };
       default:
-        return <Clock className="w-5 h-5 text-yellow-500" />;
+        return {
+          icon: <Clock className="w-4 h-4 text-yellow-500" />,
+          label: "Pending",
+          color: "text-yellow-600 bg-yellow-50",
+        };
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-blue-100 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Bids Received</h2>
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
 
-        {loading ? (
-          <p className="text-center py-8 text-gray-500">Loading bids...</p>
-        ) : bids.length === 0 ? (
-          <p className="text-center py-8 text-gray-500">No bids yet</p>
-        ) : (
-          <div className="space-y-4">
-            {bids.map((bid) => (
+      {/* BACKDROP */}
+      <div
+        onClick={onClose}
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+      />
+
+      {/* MODAL */}
+      <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl flex flex-col max-h-[85vh]">
+
+        {/* HEADER */}
+        <div className="flex items-center justify-between px-6 py-4 border-b">
+          <h2 className="text-lg font-semibold text-gray-900">
+            Bids Received
+          </h2>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-lg hover:bg-gray-100"
+          >
+            <X className="w-5 h-5 text-gray-500" />
+          </button>
+        </div>
+
+        {/* CONTENT */}
+        <div className="p-6 overflow-y-auto space-y-4">
+
+          {/* LOADING */}
+          {loading &&
+            [...Array(4)].map((_, i) => (
               <div
-                key={bid._id}
-                className="border border-gray-200 rounded-lg p-4"
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <h3 className="font-semibold text-gray-900">
-                      {bid.freelancerid.name || "Unknown"}
-                    </h3>
-                    <div className="flex items-center gap-2 mt-1">
-                      {getStatusIcon(bid.status)}
-                      <span className="text-sm text-gray-600 capitalize">
-                        {bid.status}
-                      </span>
+                key={i}
+                className="h-24 bg-gray-200 animate-pulse rounded-xl"
+              />
+            ))}
+
+          {/* EMPTY */}
+          {!loading && bids.length === 0 && (
+            <div className="text-center py-10 text-gray-500">
+              No bids yet
+            </div>
+          )}
+
+          {/* BIDS */}
+          {!loading &&
+            bids.map((bid) => {
+              const status = getStatus(bid.status);
+
+              return (
+                <div
+                  key={bid._id}
+                  className="border rounded-xl p-4 hover:shadow-md transition"
+                >
+                  {/* TOP */}
+                  <div className="flex items-start justify-between">
+
+                    <div>
+                      <h3 className="font-semibold text-gray-900">
+                        {bid.freelancerid?.name || "Unknown"}
+                      </h3>
+
+                      <div
+                        className={`flex items-center gap-1 text-xs px-2 py-1 mt-1 rounded-full w-fit ${status.color}`}
+                      >
+                        {status.icon}
+                        {status.label}
+                      </div>
                     </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xl font-bold text-blue-600">
+
+                    <div className="text-lg font-bold text-blue-600">
                       ${bid.price}
                     </div>
                   </div>
-                </div>
-                <p className="text-gray-700 mb-3">{bid.message}</p>
-                {bid.status === "pending" && (
-                  <button
-                    onClick={() => handleHire(bid._id)}
-                    disabled={hiringBidId !== null} //
-                    className={`w-full px-4 py-2 rounded-lg font-medium transition cursor-pointer ${
-                      hiringBidId === bid._id
-                        ? "bg-green-400 text-white cursor-wait"
-                        : hiringBidId !== null
-                          ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                          : "bg-blue-600 text-white hover:bg-blue-700"
-                    }`}
-                  >
-                    {hiringBidId === bid._id ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        Hiring...
-                      </span>
-                    ) : (
-                      "Hire This Freelancer"
-                    )}
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
 
-        <button
-          onClick={onClose}
-          disabled={hiringBidId !== null}
-          className="w-full mt-4 px-4 py-2 cursor-pointer bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition"
-        >
-          Close
-        </button>
+                  {/* MESSAGE */}
+                  <p className="text-sm text-gray-600 mt-3 line-clamp-2">
+                    {bid.message}
+                  </p>
+
+                  {/* ACTION */}
+                  {bid.status === "pending" && (
+                    <button
+                      onClick={() => handleHire(bid._id)}
+                      disabled={hiringBidId !== null}
+                      className={`mt-4 w-full py-2 rounded-lg font-medium transition flex items-center justify-center ${
+                        hiringBidId === bid._id
+                          ? "bg-green-500 text-white"
+                          : hiringBidId !== null
+                          ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                          : "bg-blue-600 text-white hover:bg-blue-700"
+                      }`}
+                    >
+                      {hiringBidId === bid._id ? (
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        "Hire Freelancer"
+                      )}
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+        </div>
+
+        {/* FOOTER */}
+        <div className="p-4 border-t">
+          <button
+            onClick={onClose}
+            disabled={hiringBidId !== null}
+            className="w-full py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
+          >
+            Close
+          </button>
+        </div>
       </div>
     </div>
   );

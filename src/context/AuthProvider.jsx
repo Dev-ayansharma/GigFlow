@@ -42,11 +42,11 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async (name, email, password) => {
+  const register = async (name, email, password,role) => {
     try {
-      const res = await api.register(name, email, password);
+      const res = await api.register(name, email, password,role);
       if (res?.data) {
-        setUser(res.data);
+        
         return { success: true };
       }
       return { success: false, error: res.message };

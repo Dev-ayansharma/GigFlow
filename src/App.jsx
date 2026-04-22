@@ -5,7 +5,7 @@ import AuthPage from "./components/auth/AuthPage";
 import Dashboard from "./components/dashboard/Dashboard";
 import NotificationToast from "./components/NotificationToast";
 import socketService from "./services/socket";
-
+import ClientDashboard from "./components/dashboard/ClientDashboard";
 const AppContent = () => {
   const { user, loading } = useAuth();
   const [notification, setNotification] = useState(null);
@@ -38,7 +38,11 @@ const AppContent = () => {
 
   return (
     <>
-      {user ? <Dashboard /> : <AuthPage />}
+     {user ? (
+  user.role === "client" ? <ClientDashboard /> : <Dashboard />
+) : (
+  <AuthPage />
+)}
       {notification && (
         <NotificationToast
           notification={notification}
